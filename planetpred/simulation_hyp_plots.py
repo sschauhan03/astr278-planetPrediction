@@ -64,8 +64,8 @@ def hyp_plot_parameters(set_name, plotXFe, saveplot):
     
     #--------------------------------Running the Numbers---------------------------------
     
-    hyp = ClassyReader("hypatia-nonCons-noThickDisk-planets-28Feb-nasa.csv", delimiter=",")
-    predicted = ClassyReader(set_name+"/figures/planet_probabilities_big.csv", delimiter=",")
+    hyp = ClassyReader("planetpred\\hypatia-nonCons-noThickDisk-planets-28Feb-nasa.csv", delimiter=",")
+    predicted = ClassyReader("planetpred\\"+set_name+"\\figures\\planet_probabilities_big.csv", delimiter=",")
 
     element_dict = {}
     for zz, n in enumerate(elements):
@@ -260,7 +260,7 @@ def hyp_plot_parameters(set_name, plotXFe, saveplot):
             axScatter.legend(loc='lower left', scatterpoints=1,fontsize=8)
     
         if saveplot:
-            full_plot_dir = os.path.join(working_dir, set_name, 'figures')
+            full_plot_dir = os.path.join(working_dir, "planetpred",set_name, 'figures')
             if not os.path.isdir(full_plot_dir):
                 os.mkdir(full_plot_dir)
             if plotXFe:

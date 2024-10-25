@@ -15,14 +15,19 @@ plt.style.use('ggplot')
 
 def plot_parameters(set_name):
     
-    stream = open('{0}/params.yaml'.format(set_name), 'r')
+    data_dir = 'planetpred\\'+set_name
+    full_path = os.path.join(working_dir,"{0}".format(data_dir),'params.yaml')
+    stream = open(full_path, 'r')
     parameters = yaml.load(stream, Loader=yaml.FullLoader)
+    # stream = open('{0}/params.yaml'.format(set_name), 'r')
+    # parameters = yaml.load(stream, Loader=yaml.FullLoader)
     features = parameters['features']
     
-    df = pd.read_csv('hypatia-nonCons-noThickDisk-planets-28Feb-nasa.csv')
-    results = pd.read_pickle('{0}/df_info_all.pkl'.format(set_name))
+    csv_input_name = 'planetpred\\hypatia-nonCons-noThickDisk-planets-28Feb-nasa.csv'
+    df = pd.read_csv(csv_input_name)
+    results = pd.read_pickle('planetpred\\{0}\\df_info_all.pkl'.format(set_name))
     
-    data = pd.read_pickle('{0}/features_train.pkl'.format(set_name))
+    data = pd.read_pickle('planetpred\\{0}\\features_train.pkl'.format(set_name))
     finite_count = df[features].count() / df[features].count().max()
     normalized = finite_count*data
     
@@ -41,7 +46,7 @@ def plot_parameters(set_name):
     #plt.title("Vol+Litho+Fe")
     plt.rc('xtick', labelsize=14)
     plt.rc('ytick', labelsize=14)
-    full_file_dir = os.path.join(working_dir, set_name, "figures")
+    full_file_dir = os.path.join(working_dir,"planetpred",set_name, "figures")
     if not os.path.exists(full_file_dir):
         os.mkdir(full_file_dir)
 
@@ -49,7 +54,7 @@ def plot_parameters(set_name):
     print(filename)
     plt.savefig(filename)
     
-    cfm = np.load(os.path.join(working_dir, set_name, 'cfm.npy'))
+    cfm = np.load(os.path.join(working_dir, "planetpred",set_name, 'cfm.npy'))
     print(cfm)
     print('')
     print(feat_imp)

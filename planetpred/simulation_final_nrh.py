@@ -46,7 +46,8 @@ def set_parameters(set_name, golden_set, input_file):
     #-------------------------------------------------------------------------
     
     #read in the directory that is being run
-    data_dir = set_name
+    data_dir = 'planetpred\\set1'
+    # data_dir = set_name
     
     #read in the parameters file and load it
 
@@ -55,7 +56,8 @@ def set_parameters(set_name, golden_set, input_file):
     parameters = yaml.load(stream, Loader=yaml.FullLoader)
     
     #read in Hypatia data as pandas dataframe (2D structure), drop HIP numbers
-    df  = pd.read_csv(input_file)
+    csv_input_name = 'planetpred\\' + str(input_file)
+    df  = pd.read_csv(csv_input_name)
     
     set_number = set_name
     
@@ -81,7 +83,8 @@ def set_parameters(set_name, golden_set, input_file):
     df['MaxPMass']  = df['MaxPMass'].astype(np.number)
     df['Sampled']   = np.zeros((df.shape[0]))
     df['Predicted'] = np.zeros((df.shape[0]))
-    df = df.drop(['HIP'], 1)
+    # print(df.columns)
+    df = df.drop(['HIP'], axis=1)
     
     # Print a bunch of stuff in terminal
     print('Parameters used in simulation:')
@@ -135,7 +138,7 @@ def set_parameters(set_name, golden_set, input_file):
         df_predict       = df[~df.index.isin(df_train.index)]
         
         # The train dataframe with everything but the Exo column
-        X = df_train.drop(['Exo'],1)
+        X = df_train.drop(['Exo'],axis=1)
         # The Exo column (and hips)
         Y = df_train.Exo
         
@@ -150,7 +153,8 @@ def set_parameters(set_name, golden_set, input_file):
                             objective= 'binary:logistic', #def=linear, logistic regression for binary classification, output probability
                             nthread=1, #originall = 8, but issue on laptop...def=max, number of parallel threads used to run xgboost
                             scale_pos_weight=1, #def=1, balance positive and neg weights
-                            seed=27) #def=0, random number seed
+                            seed=27, #def=0, random number seed
+                            eval_metric='auc')
                             
         #get input parameters of algorithm
         xgb_param = alg.get_xgb_params()
@@ -164,7 +168,8 @@ def set_parameters(set_name, golden_set, input_file):
         alg.set_params(n_estimators=cvresult.shape[0])
         print(iteration, '\t \t', cvresult.shape[0])
         
-        alg.fit(X[features], Y, eval_metric='auc')
+        alg.fit(X[features], Y)
+        # alg.fit(X[features], Y, eval_metric='auc')
     
         dtrain_predictions = alg.predict(X[features])
         dtrain_predprob    = alg.predict_proba(X[features])[:,1]
@@ -226,13 +231,15 @@ def set_parameters(set_name, golden_set, input_file):
     if golden: #if 10 stars were randomly taken out
         changeddf = pd.DataFrame([]) #make empty dataframe
         for star in changedhips:  #loop over the 10 known planets hosts (defined at top)
-            changeddf = changeddf.append(planets2.loc[planets2.index==star])
+            changeddf = pd.concat([changeddf, planets2.loc[planets2.index==star]])
+            # changeddf = changeddf.append(planets2.loc[planets2.index==star])
             if planets2.loc[planets2.index==star].empty: #catch for when a known planet host was cut (bc of abunds)
                 temp = pd.Series([nan,nan,nan], index=['Sampled', 'Predicted', 'Prob'])
                 temp.name = star
-                changeddf = changeddf.append(temp) #append blank file (with star name as index)
+                changeddf = pd.concat([changeddf, temp])
+                # changeddf = changeddf.append(temp) #append blank file (with star name as index)
         #Save golden set as a separate file with the date and time as a tag
-        filename ='{0}/figures/goldenSetProbabilities'+str(datetime.today().strftime('-%h%d-%H%M'))+'.csv'
+        filename = working_dir+'/planetpred/{0}/figures/goldenSetProbabilities'+str(datetime.today().strftime('-%h%d-%H%M'))+'.csv'
         changeddf.to_csv(filename.format(set_number), na_rep=" ")
     
     #Save the file with all of the probabilities
